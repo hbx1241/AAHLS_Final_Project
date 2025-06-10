@@ -1,0 +1,79 @@
+
+This result is generated under the condition there is no block from testbench side.
+So in real working environment, the suggested depth may need some margin.
+
+After FIFO sizing, module total executing time has no change.(still 134370 cycles)
+The detailed FIFO info are listed below.
+    FIFO(AESL_inst_spmv_opt3.grp_spmv_kernel_opt3_fu_256.row_fifo_U):
+    {
+        The user setting depth:       2.
+        The smallest suggest depth:       129.
+        Involved in deadlock path:        Yes.
+        Work mode:
+            FIFO never blocks its consumer and producer.
+            The possible reason is the FIFO depth is big enough.
+    }
+
+    FIFO(AESL_inst_spmv_opt3.grp_spmv_kernel_opt3_fu_256.row_pad_fifo_U):
+    {
+        The user setting depth:       2.
+        The smallest suggest depth:       129.
+        Involved in deadlock path:        Yes.
+        Work mode:
+            FIFO never blocks its consumer and producer.
+            The possible reason is the FIFO depth is big enough.
+    }
+
+    FIFO(AESL_inst_spmv_opt3.grp_spmv_kernel_opt3_fu_256.M_c_U):
+    {
+        The user setting depth:       3.
+        The smallest suggest depth:       2.
+        Involved in deadlock path:        No.
+        Work mode:
+            FIFO never blocks its consumer and producer.
+            The possible reason is the FIFO depth is big enough.
+    }
+
+    FIFO(AESL_inst_spmv_opt3.grp_spmv_kernel_opt3_fu_256.col_fifo_U):
+    {
+        The user setting depth:       2.
+        The smallest suggest depth:       2.
+        Involved in deadlock path:        No.
+        Work mode:
+            FIFO always blocks its producer.
+            FIFO may sometimes or never blocks its consumer.
+            The possible reason is the producer works fast for this channel.
+    }
+
+    FIFO(AESL_inst_spmv_opt3.grp_spmv_kernel_opt3_fu_256.val_fifo_U):
+    {
+        The user setting depth:       2.
+        The smallest suggest depth:       2.
+        Involved in deadlock path:        No.
+        Work mode:
+            FIFO always blocks its producer.
+            FIFO may sometimes or never blocks its consumer.
+            The possible reason is the producer works fast for this channel.
+    }
+
+    FIFO(AESL_inst_spmv_opt3.grp_spmv_kernel_opt3_fu_256.nnz_new_loc_channel_U):
+    {
+        The user setting depth:       1.
+        The smallest suggest depth:       2.
+        Involved in deadlock path:        Yes.
+        Work mode:
+            FIFO never blocks its consumer and producer.
+            The possible reason is the FIFO depth is big enough.
+    }
+
+    FIFO(AESL_inst_spmv_opt3.grp_spmv_kernel_opt3_fu_256.y_fifo_U):
+    {
+        The user setting depth:       2.
+        The smallest suggest depth:       2.
+        Involved in deadlock path:        No.
+        Work mode:
+            FIFO always blocks its consumer.
+            FIFO may sometimes or never block its producer.
+            The possible reason is the producer works slowly for this channel.
+    }
+

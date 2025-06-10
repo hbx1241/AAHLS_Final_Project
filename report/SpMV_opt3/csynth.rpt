@@ -1,0 +1,267 @@
+
+
+================================================================
+== Synthesis Summary Report of 'spmv_opt3'
+================================================================
++ General Information: 
+    * Date:           Mon Jun  9 15:26:19 2025
+    * Version:        2022.1 (Build 3526262 on Mon Apr 18 15:47:01 MDT 2022)
+    * Project:        SpMv
+    * Solution:       solution1 (Vivado IP Flow Target)
+    * Product family: zynq
+    * Target device:  xc7z020-clg400-1
+    
+
++ Performance & Resource Estimates: 
+    
+    PS: '+' for module; 'o' for loop; '*' for dataflow
+    +----------------------------------------------------------------------------+------+------+---------+--------+----------+---------+------+----------+----------+--------+-----------+-----------+-----+
+    |                                   Modules                                  | Issue|      | Latency | Latency| Iteration|         | Trip |          |          |        |           |           |     |
+    |                                   & Loops                                  | Type | Slack| (cycles)|  (ns)  |  Latency | Interval| Count| Pipelined|   BRAM   |   DSP  |     FF    |    LUT    | URAM|
+    +----------------------------------------------------------------------------+------+------+---------+--------+----------+---------+------+----------+----------+--------+-----------+-----------+-----+
+    |+ spmv_opt3                                                                 |     -|  0.04|        -|       -|         -|        -|     -|        no|  37 (13%)|  7 (3%)|  4278 (4%)|  4897 (9%)|    -|
+    | + spmv_kernel_opt3*                                                        |     -|  0.04|        -|       -|         -|        -|     -|  dataflow|         -|  7 (3%)|  3069 (2%)|  3706 (6%)|    -|
+    |  + spmv_kernel_opt3_Loop_LOOP_ROW_SIZE_proc3                               |     -|  0.39|        -|       -|         -|        -|     -|        no|         -|       -|  213 (~0%)|  465 (~0%)|    -|
+    |   + spmv_kernel_opt3_Loop_LOOP_ROW_SIZE_proc3_Pipeline_LOOP_ROW_SIZE       |     -|  0.39|        -|       -|         -|        -|     -|        no|         -|       -|  206 (~0%)|  393 (~0%)|    -|
+    |    o LOOP_ROW_SIZE                                                         |     -|  9.00|        -|       -|         4|        1|     -|       yes|         -|       -|          -|          -|    -|
+    |  + spmv_kernel_opt3_Loop_LOOP_NNZ_FIFO_proc4                               |     -|  2.11|        -|       -|         -|        -|     -|        no|         -|       -|   34 (~0%)|  118 (~0%)|    -|
+    |   o LOOP_NNZ_FIFO                                                          |     -|  9.00|        -|       -|         2|        1|     -|       yes|         -|       -|          -|          -|    -|
+    |  + spmv_kernel_opt3_Loop_LOOP_FAST_STREAM_proc                             |     -|  0.04|        -|       -|         -|        -|     -|        no|         -|  7 (3%)|  2024 (1%)|  2450 (4%)|    -|
+    |   + spmv_kernel_opt3_Loop_LOOP_FAST_STREAM_proc_Pipeline_LOOP_FAST_STREAM  |     -|  0.04|        -|       -|         -|        -|     -|        no|         -|  7 (3%)|  1989 (1%)|  2199 (4%)|    -|
+    |    o LOOP_FAST_STREAM                                                      |    II|  9.00|        -|       -|        33|        4|     -|       yes|         -|       -|          -|          -|    -|
+    |  + spmv_kernel_opt3_Loop_LOOP_RESULT_proc5                                 |     -|  2.11|        -|       -|         -|        -|     -|        no|         -|       -|  102 (~0%)|  154 (~0%)|    -|
+    |   + spmv_kernel_opt3_Loop_LOOP_RESULT_proc5_Pipeline_LOOP_RESULT           |     -|  2.11|        -|       -|         -|        -|     -|        no|         -|       -|   65 (~0%)|  105 (~0%)|    -|
+    |    o LOOP_RESULT                                                           |     -|  9.00|        -|       -|         2|        1|     -|       yes|         -|       -|          -|          -|    -|
+    | o VITIS_LOOP_129_1                                                         |     -|  9.00|        -|       -|         2|        1|     -|       yes|         -|       -|          -|          -|    -|
+    +----------------------------------------------------------------------------+------+------+---------+--------+----------+---------+------+----------+----------+--------+-----------+-----------+-----+
+
+
+================================================================
+== HW Interfaces
+================================================================
+* S_AXILITE Interfaces
++---------------+------------+---------------+--------+----------+-------------------+
+| Interface     | Data Width | Address Width | Offset | Register | Resource Estimate |
++---------------+------------+---------------+--------+----------+-------------------+
+| s_axi_control | 32         | 16            | 1024   | 0        | BRAM=36           |
++---------------+------------+---------------+--------+----------+-------------------+
+
+* S_AXILITE Registers
++---------------+----------+--------+-------+--------+----------------------------------+----------------------------------------------------------------------+
+| Interface     | Register | Offset | Width | Access | Description                      | Bit Fields                                                           |
++---------------+----------+--------+-------+--------+----------------------------------+----------------------------------------------------------------------+
+| s_axi_control | CTRL     | 0x00   | 32    | RW     | Control signals                  | 0=AP_START 1=AP_DONE 2=AP_IDLE 3=AP_READY 7=AUTO_RESTART 9=INTERRUPT |
+| s_axi_control | GIER     | 0x04   | 32    | RW     | Global Interrupt Enable Register | 0=Enable                                                             |
+| s_axi_control | IP_IER   | 0x08   | 32    | RW     | IP Interrupt Enable Register     | 0=CHAN0_INT_EN 1=CHAN1_INT_EN                                        |
+| s_axi_control | IP_ISR   | 0x0c   | 32    | RW     | IP Interrupt Status Register     | 0=CHAN0_INT_ST 1=CHAN1_INT_ST                                        |
+| s_axi_control | M        | 0x10   | 32    | W      | Data signal of M                 |                                                                      |
+| s_axi_control | nnz      | 0x18   | 32    | W      | Data signal of nnz               |                                                                      |
++---------------+----------+--------+-------+--------+----------------------------------+----------------------------------------------------------------------+
+
+* REGISTER
++-----------+---------+----------+
+| Interface | Mode    | Bitwidth |
++-----------+---------+----------+
+| N         | ap_none | 32       |
++-----------+---------+----------+
+
+* TOP LEVEL CONTROL
++-----------+------------+-----------+
+| Interface | Type       | Ports     |
++-----------+------------+-----------+
+| ap_clk    | clock      | ap_clk    |
+| ap_rst_n  | reset      | ap_rst_n  |
+| interrupt | interrupt  | interrupt |
+| ap_ctrl   | ap_ctrl_hs |           |
++-----------+------------+-----------+
+
+
+================================================================
+== SW I/O Information
+================================================================
+* Top Function Arguments
++----------+-----------+---------------+
+| Argument | Direction | Datatype      |
++----------+-----------+---------------+
+| row_ptr  | in        | int const *   |
+| col_idx  | in        | int const *   |
+| val      | in        | float const * |
+| x        | in        | float const * |
+| y        | out       | float*        |
+| M        | in        | int           |
+| N        | in        | int           |
+| nnz      | in        | int           |
++----------+-----------+---------------+
+
+* SW-to-HW Mapping
++----------+---------------+-----------+---------------------------------------+
+| Argument | HW Interface  | HW Type   | HW Info                               |
++----------+---------------+-----------+---------------------------------------+
+| row_ptr  | s_axi_control | memory    | name=row_ptr offset=1024 range=1024   |
+| col_idx  | s_axi_control | memory    | name=col_idx offset=16384 range=16384 |
+| val      | s_axi_control | interface |                                       |
+| x        | s_axi_control | interface |                                       |
+| x        | s_axi_control | interface |                                       |
+| x        | s_axi_control | interface |                                       |
+| x        | s_axi_control | interface |                                       |
+| x        | s_axi_control | interface |                                       |
+| x        | s_axi_control | interface |                                       |
+| x        | s_axi_control | interface |                                       |
+| x        | s_axi_control | interface |                                       |
+| y        | s_axi_control | memory    | name=y offset=3072 range=1024         |
+| M        | s_axi_control | register  | name=M offset=0x10 range=32           |
+| N        | N             | port      |                                       |
+| nnz      | s_axi_control | register  | name=nnz offset=0x18 range=32         |
++----------+---------------+-----------+---------------------------------------+
+
+
+================================================================
+== Bind Op Report
+================================================================
++----------------------------------------------------------------------------+-----+--------+---------------------+------+---------+---------+
+| Name                                                                       | DSP | Pragma | Variable            | Op   | Impl    | Latency |
++----------------------------------------------------------------------------+-----+--------+---------------------+------+---------+---------+
+| + spmv_opt3                                                                | 7   |        |                     |      |         |         |
+|   add_ln129_fu_284_p2                                                      | -   |        | add_ln129           | add  | fabric  | 0       |
+|  + spmv_kernel_opt3                                                        | 7   |        |                     |      |         |         |
+|    nnz_new_loc_channel_U                                                   | -   |        | nnz_new_loc_channel | fifo | srl     | 0       |
+|   + spmv_kernel_opt3_Loop_LOOP_ROW_SIZE_proc3                              | 0   |        |                     |      |         |         |
+|    + spmv_kernel_opt3_Loop_LOOP_ROW_SIZE_proc3_Pipeline_LOOP_ROW_SIZE      | 0   |        |                     |      |         |         |
+|      add_ln38_fu_146_p2                                                    | -   |        | add_ln38            | add  | fabric  | 0       |
+|      r_fu_165_p2                                                           | -   |        | r                   | sub  | fabric  | 0       |
+|      sub_ln41_fu_205_p2                                                    | -   |        | sub_ln41            | sub  | fabric  | 0       |
+|      sub_ln41_1_fu_222_p2                                                  | -   |        | sub_ln41_1          | sub  | fabric  | 0       |
+|      nnz_new_1_fu_276_p2                                                   | -   |        | nnz_new_1           | add  | fabric  | 0       |
+|   + spmv_kernel_opt3_Loop_LOOP_NNZ_FIFO_proc4                              | 0   |        |                     |      |         |         |
+|     add_ln56_fu_118_p2                                                     | -   |        | add_ln56            | add  | fabric  | 0       |
+|   + spmv_kernel_opt3_Loop_LOOP_FAST_STREAM_proc                            | 7   |        |                     |      |         |         |
+|     p_read_op_op_fu_78_p2                                                  | -   |        | p_read_op_op        | add  | fabric  | 0       |
+|     p_neg_fu_91_p2                                                         | -   |        | p_neg               | sub  | fabric  | 0       |
+|     p_neg_t_fu_106_p2                                                      | -   |        | p_neg_t             | sub  | fabric  | 0       |
+|    + spmv_kernel_opt3_Loop_LOOP_FAST_STREAM_proc_Pipeline_LOOP_FAST_STREAM | 7   |        |                     |      |         |         |
+|      cnt_2_fu_272_p2                                                       | -   |        | cnt_2               | add  | fabric  | 0       |
+|      fmul_32ns_32ns_32_4_max_dsp_1_U18                                     | 3   |        | temp                | fmul | maxdsp  | 3       |
+|      fadd_32ns_32ns_32_5_full_dsp_1_U16                                    | 2   |        | phitmp_i            | fadd | fulldsp | 4       |
+|      cnt_3_fu_289_p2                                                       | -   |        | cnt_3               | add  | fabric  | 0       |
+|      fmul_32ns_32ns_32_4_max_dsp_1_U18                                     | 3   |        | temp_1              | fmul | maxdsp  | 3       |
+|      cnt_4_fu_309_p2                                                       | -   |        | cnt_4               | add  | fabric  | 0       |
+|      fmul_32ns_32ns_32_4_max_dsp_1_U18                                     | 3   |        | temp_3              | fmul | maxdsp  | 3       |
+|      cnt_5_fu_356_p2                                                       | -   |        | cnt_5               | add  | fabric  | 0       |
+|      fmul_32ns_32ns_32_4_max_dsp_1_U18                                     | 3   |        | temp_5              | fmul | maxdsp  | 3       |
+|      fadd_32ns_32ns_32_5_full_dsp_1_U16                                    | 2   |        | sum_tmp_1           | fadd | fulldsp | 4       |
+|      fadd_32ns_32ns_32_5_full_dsp_1_U16                                    | 2   |        | sum_tmp_2           | fadd | fulldsp | 4       |
+|      fadd_32ns_32ns_32_5_full_dsp_1_U16                                    | 2   |        | sum_tmp_3           | fadd | fulldsp | 4       |
+|      fadd_32ns_32ns_32_5_full_dsp_1_U17                                    | 2   |        | sum_1               | fadd | fulldsp | 4       |
+|      rz_pad_2_fu_319_p2                                                    | -   |        | rz_pad_2            | add  | fabric  | 0       |
+|      i_6_fu_331_p2                                                         | -   |        | i_6                 | add  | fabric  | 0       |
+|   + spmv_kernel_opt3_Loop_LOOP_RESULT_proc5                                | 0   |        |                     |      |         |         |
+|    + spmv_kernel_opt3_Loop_LOOP_RESULT_proc5_Pipeline_LOOP_RESULT          | 0   |        |                     |      |         |         |
+|      add_ln95_fu_92_p2                                                     | -   |        | add_ln95            | add  | fabric  | 0       |
++----------------------------------------------------------------------------+-----+--------+---------------------+------+---------+---------+
+
+
+================================================================
+== Bind Storage Report
+================================================================
++---------------------+------+------+--------+--------------+---------+------+---------+
+| Name                | BRAM | URAM | Pragma | Variable     | Storage | Impl | Latency |
++---------------------+------+------+--------+--------------+---------+------+---------+
+| + spmv_opt3         | 37   | 0    |        |              |         |      |         |
+|   x_local_U         | 1    | -    |        | x_local      | rom_np  | auto | 1       |
+|  + spmv_kernel_opt3 | 0    | 0    |        |              |         |      |         |
+|    M_c_U            | -    | -    |        | M_c          | fifo    | srl  | 0       |
+|    row_fifo_U       | -    | -    |        | row_fifo     | fifo    | srl  | 0       |
+|    row_pad_fifo_U   | -    | -    |        | row_pad_fifo | fifo    | srl  | 0       |
+|    col_fifo_U       | -    | -    |        | col_fifo     | fifo    | srl  | 0       |
+|    val_fifo_U       | -    | -    |        | val_fifo     | fifo    | srl  | 0       |
+|    y_fifo_U         | -    | -    |        | y_fifo       | fifo    | srl  | 0       |
++---------------------+------+------+--------+--------------+---------+------+---------+
+
+
+================================================================
+== Pragma Report
+================================================================
+* Pragmas with Warnings
++----------+---------+-----------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Type     | Options | Location                                                  | Messages                                                                                                                                                                           |
++----------+---------+-----------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| dataflow |         | src/spmv_csr_opt1.cpp:27 in spmv_opt1                     | Since the only kind of statements allowed in a canonical dataflow region are variable declarations and function calls, the compiler may not be able to correctly handle the region |
+| dataflow |         | src/spmv_fast_stream_opt3.cpp:15 in spmv_kernel_opt3      | Since the only kind of statements allowed in a canonical dataflow region are variable declarations and function calls, the compiler may not be able to correctly handle the region |
+|          |         |                                                           | There are a total of 8 such instances of non-canonical statements in the dataflow region                                                                                           |
+| dataflow |         | src/spmv_fast_stream_sw_opt3.cpp:15 in spmv_kernel_opt3_1 | Since the only kind of statements allowed in a canonical dataflow region are variable declarations and function calls, the compiler may not be able to correctly handle the region |
+|          |         |                                                           | There are a total of 5 such instances of non-canonical statements in the dataflow region                                                                                           |
+| dataflow |         | src/spmv_naive_stream_opt2.cpp:14 in spmv_kernel_opt2     | Since the only kind of statements allowed in a canonical dataflow region are variable declarations and function calls, the compiler may not be able to correctly handle the region |
+|          |         |                                                           | There are a total of 6 such instances of non-canonical statements in the dataflow region                                                                                           |
++----------+---------+-----------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+* Valid Pragma Syntax
++-----------------+----------------------------------------+----------------------------------------------------------------+
+| Type            | Options                                | Location                                                       |
++-----------------+----------------------------------------+----------------------------------------------------------------+
+| interface       | s_axilite port=row_ptr bundle=control  | src/spmv_csr_opt1.cpp:18 in spmv_opt1, row_ptr                 |
+| interface       | s_axilite port=col_idx bundle=control  | src/spmv_csr_opt1.cpp:19 in spmv_opt1, col_idx                 |
+| interface       | s_axilite port=val bundle=control      | src/spmv_csr_opt1.cpp:20 in spmv_opt1, val                     |
+| interface       | s_axilite port=x bundle=control        | src/spmv_csr_opt1.cpp:21 in spmv_opt1, x                       |
+| interface       | s_axilite port=y bundle=control        | src/spmv_csr_opt1.cpp:22 in spmv_opt1, y                       |
+| interface       | s_axilite port=M bundle=control        | src/spmv_csr_opt1.cpp:23 in spmv_opt1, M                       |
+| interface       | s_axilite port=nnz bundle=control      | src/spmv_csr_opt1.cpp:24 in spmv_opt1, nnz                     |
+| interface       | s_axilite port=return bundle=control   | src/spmv_csr_opt1.cpp:25 in spmv_opt1, return                  |
+| array_partition | variable=x cyclic factor=8 dim=1       | src/spmv_csr_opt1.cpp:26 in spmv_opt1, x                       |
+| array_partition | variable=x_local cyclic factor=8 dim=1 | src/spmv_csr_opt1.cpp:29 in spmv_opt1, x_local                 |
+| pipeline        |                                        | src/spmv_csr_opt1.cpp:32 in spmv_opt1                          |
+| pipeline        |                                        | src/spmv_csr_opt1.cpp:42 in spmv_opt1                          |
+| interface       | s_axilite port=x bundle=control        | src/spmv_fast_stream_opt3.cpp:12 in spmv_kernel_opt3, x        |
+| interface       | s_axilite port=nnz bundle=control      | src/spmv_fast_stream_opt3.cpp:13 in spmv_kernel_opt3, nnz      |
+| interface       | s_axilite port=return bundle=control   | src/spmv_fast_stream_opt3.cpp:14 in spmv_kernel_opt3, return   |
+| pipeline        |                                        | src/spmv_fast_stream_opt3.cpp:35 in spmv_kernel_opt3           |
+| pipeline        |                                        | src/spmv_fast_stream_opt3.cpp:57 in spmv_kernel_opt3           |
+| pipeline        |                                        | src/spmv_fast_stream_opt3.cpp:64 in spmv_kernel_opt3           |
+| unroll          |                                        | src/spmv_fast_stream_opt3.cpp:73 in spmv_kernel_opt3           |
+| unroll          |                                        | src/spmv_fast_stream_opt3.cpp:86 in spmv_kernel_opt3           |
+| pipeline        |                                        | src/spmv_fast_stream_opt3.cpp:96 in spmv_kernel_opt3           |
+| interface       | s_axilite port=row_ptr bundle=control  | src/spmv_fast_stream_opt3.cpp:115 in spmv_opt3, row_ptr        |
+| interface       | s_axilite port=col_idx bundle=control  | src/spmv_fast_stream_opt3.cpp:116 in spmv_opt3, col_idx        |
+| interface       | s_axilite port=val bundle=control      | src/spmv_fast_stream_opt3.cpp:117 in spmv_opt3, val            |
+| interface       | s_axilite port=x bundle=control        | src/spmv_fast_stream_opt3.cpp:118 in spmv_opt3, x              |
+| interface       | s_axilite port=y bundle=control        | src/spmv_fast_stream_opt3.cpp:119 in spmv_opt3, y              |
+| interface       | s_axilite port=M bundle=control        | src/spmv_fast_stream_opt3.cpp:120 in spmv_opt3, M              |
+| interface       | s_axilite port=nnz bundle=control      | src/spmv_fast_stream_opt3.cpp:121 in spmv_opt3, nnz            |
+| interface       | s_axilite port=return bundle=control   | src/spmv_fast_stream_opt3.cpp:122 in spmv_opt3, return         |
+| array_partition | variable=x cyclic factor=8 dim=1       | src/spmv_fast_stream_opt3.cpp:127 in spmv_opt3, x              |
+| interface       | s_axilite port=x bundle=control        | src/spmv_fast_stream_sw_opt3.cpp:12 in spmv_kernel_opt3_1, x   |
+| interface       | s_axilite port=nnz bundle=control      | src/spmv_fast_stream_sw_opt3.cpp:13 in spmv_kernel_opt3_1, nnz |
+| pipeline        |                                        | src/spmv_fast_stream_sw_opt3.cpp:27 in spmv_kernel_opt3_1      |
+| pipeline        |                                        | src/spmv_fast_stream_sw_opt3.cpp:33 in spmv_kernel_opt3_1      |
+| pipeline        |                                        | src/spmv_fast_stream_sw_opt3.cpp:42 in spmv_kernel_opt3_1      |
+| unroll          |                                        | src/spmv_fast_stream_sw_opt3.cpp:50 in spmv_kernel_opt3_1      |
+| unroll          |                                        | src/spmv_fast_stream_sw_opt3.cpp:58 in spmv_kernel_opt3_1      |
+| pipeline        |                                        | src/spmv_fast_stream_sw_opt3.cpp:69 in spmv_kernel_opt3_1      |
+| interface       | s_axilite port=row_ptr bundle=control  | src/spmv_fast_stream_sw_opt3.cpp:88 in spmv_opt3_1, row_ptr    |
+| interface       | s_axilite port=col_idx bundle=control  | src/spmv_fast_stream_sw_opt3.cpp:89 in spmv_opt3_1, col_idx    |
+| interface       | s_axilite port=val bundle=control      | src/spmv_fast_stream_sw_opt3.cpp:90 in spmv_opt3_1, val        |
+| interface       | s_axilite port=x bundle=control        | src/spmv_fast_stream_sw_opt3.cpp:91 in spmv_opt3_1, x          |
+| interface       | s_axilite port=y bundle=control        | src/spmv_fast_stream_sw_opt3.cpp:92 in spmv_opt3_1, y          |
+| interface       | s_axilite port=M bundle=control        | src/spmv_fast_stream_sw_opt3.cpp:93 in spmv_opt3_1, M          |
+| interface       | s_axilite port=nnz bundle=control      | src/spmv_fast_stream_sw_opt3.cpp:94 in spmv_opt3_1, nnz        |
+| array_partition | variable=x_local cyclic factor=8 dim=1 | src/spmv_fast_stream_sw_opt3.cpp:106 in spmv_opt3_1, x_local   |
+| pipeline        |                                        | src/spmv_fast_stream_sw_opt3.cpp:109 in spmv_opt3_1            |
+| interface       | s_axilite port=x bundle=control        | src/spmv_naive_stream_opt2.cpp:11 in spmv_kernel_opt2, x       |
+| interface       | s_axilite port=nnz bundle=control      | src/spmv_naive_stream_opt2.cpp:12 in spmv_kernel_opt2, nnz     |
+| interface       | s_axilite port=return bundle=control   | src/spmv_naive_stream_opt2.cpp:13 in spmv_kernel_opt2, return  |
+| pipeline        |                                        | src/spmv_naive_stream_opt2.cpp:24 in spmv_kernel_opt2          |
+| pipeline        |                                        | src/spmv_naive_stream_opt2.cpp:32 in spmv_kernel_opt2          |
+| dataflow        |                                        | src/spmv_naive_stream_opt2.cpp:37 in spmv_kernel_opt2          |
+| pipeline        |                                        | src/spmv_naive_stream_opt2.cpp:39 in spmv_kernel_opt2          |
+| interface       | s_axilite port=row_ptr bundle=control  | src/spmv_naive_stream_opt2.cpp:76 in spmv_opt2, row_ptr        |
+| interface       | s_axilite port=col_idx bundle=control  | src/spmv_naive_stream_opt2.cpp:77 in spmv_opt2, col_idx        |
+| interface       | s_axilite port=val bundle=control      | src/spmv_naive_stream_opt2.cpp:78 in spmv_opt2, val            |
+| interface       | s_axilite port=x bundle=control        | src/spmv_naive_stream_opt2.cpp:79 in spmv_opt2, x              |
+| interface       | s_axilite port=y bundle=control        | src/spmv_naive_stream_opt2.cpp:80 in spmv_opt2, y              |
+| interface       | s_axilite port=M bundle=control        | src/spmv_naive_stream_opt2.cpp:81 in spmv_opt2, M              |
+| interface       | s_axilite port=N bundle=control        | src/spmv_naive_stream_opt2.cpp:82 in spmv_opt2, N              |
+| interface       | s_axilite port=nnz bundle=control      | src/spmv_naive_stream_opt2.cpp:83 in spmv_opt2, nnz            |
+| array_partition | variable=x_local cyclic factor=8 dim=1 | src/spmv_naive_stream_opt2.cpp:90 in spmv_opt2, x_local        |
+| pipeline        |                                        | src/spmv_naive_stream_opt2.cpp:93 in spmv_opt2                 |
++-----------------+----------------------------------------+----------------------------------------------------------------+
+
+
