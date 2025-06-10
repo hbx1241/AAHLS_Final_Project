@@ -1,9 +1,10 @@
 // tb_spmv.cpp --------------------------------------------------------------
 //#include "spmv_csr_opt1.hpp"
+//#include "spmv_naive_stream_opt2_stream.hpp"
 //#include "spmv_naive_stream_opt2.hpp"
 #include "spmv_balance_opt4.hpp"
 //#include "spmv_fast_stream_opt3.hpp"
-//#include "spmv_fast_stream_sw_opt3.hpp"
+
 #include <cmath>
 #include <cassert>
 #include <fstream>
@@ -105,35 +106,6 @@ static std::vector<float> read_dense_x(const std::string& dir = "./")
     return x;
 }
 
-int pad_spmv(int M, int N, int nnz) {
-	int nnz_upd = 0;
-	for (int i = 0; i < M; i++) {
-		int rz = row_ptr_arr[i + 1] - row_ptr_arr[i];
-		int rz_new = (rz + II - 1) / II * II;
-		row_pad_arr[i] = rz_new;
-		for (int j = row_ptr_arr[i]; j < row_ptr_arr[i + 1]; j++) {
-			val_pad_arr[nnz_upd] = val_arr[j];
-			col_idx_pad_arr[nnz_upd] = col_idx_arr[j];
-			nnz_upd++;
-		}
-		for (int j = 0; j < (rz_new - rz); j++) {
-			val_pad_arr[nnz_upd] = 0;
-			col_idx_pad_arr[nnz_upd] = 0;
-			nnz_upd++;
-		}
-
-	}
-	return nnz_upd;
-}
-
-// Reads header of form key=value key=value key=value
-static bool parse_header(const std::string &line, int &m, int &n, int &nnz) {
-
-
-	//in_reg >> m >> n >> nnz;
-
-    return true;
-}
 
 // Read partitioned CSR P<id> from directory
 template<typename T>
@@ -197,10 +169,8 @@ int main()
 
     // ───────── load data from txt files ─────────
     Csr<float> A = read_csr(dir);
-    auto        x = read_dense_x(dir);
+    auto       x = read_dense_x(dir);
 
-    Csr<float> P0 = read_csr_p<float>(0, dir);
-    Csr<float> P1 = read_csr_p<float>(1, dir);
 
 
     assert(A.m <= MAX_M && A.n <= MAX_N && A.nnz <= MAX_SZ);
@@ -211,6 +181,11 @@ int main()
     std::copy(A.col_idx.begin(), A.col_idx.end(), col_idx_arr);
     std::copy(A.val    .begin(), A.val    .end(), val_arr    );
     std::copy(x.begin(),           x.end(),           x_arr   );
+#ifdef _STREAM_
+#ifdef _LB_
+    Csr<float> P0 = read_csr_p<float>(0, dir);
+    Csr<float> P1 = read_csr_p<float>(1, dir);
+
     // copy into partitions
     std::copy(P0.row_ptr.begin(), P0.row_ptr.end(), row_ptr_arr0);
 	std::copy(P0.col_idx.begin(), P0.col_idx.end(), col_idx_arr0);
@@ -250,28 +225,63 @@ int main()
 		col_idx_strm1.write(col_idx_arr1[e]);
 		val_strm1.write(val_arr1[e]);
 	}
+#else
+	hls::stream<int>       row_ptr_strm("row_ptr");
+	hls::stream<int>       col_idx_strm("col_idx");
+	hls::stream<DATA_TYPE> val_strm("val");
+	hls::stream<DATA_TYPE> y_strm("y");
+	for (int i = 1; i <= A.m; i++) {
+		row_ptr_strm.write(row_ptr_arr[i]);
+	}
+
+	// 3) Stream in the NNZ entries
+	for (int e = 0; e < A.nnz; e++) {
+		col_idx_strm.write(col_idx_arr[e]);
+		val_strm.write(val_arr[e]);
+	}
+#endif
+#endif
 
 
 
     //int nnz_upd = pad_spmv(A.m, A.n, A.nnz);
     // ───────── invoke DUT (Device Under Test) ─────────
-    //spmv_opt1(row_ptr_arr, col_idx_arr, val_arr, x_arr, y_hw, A.m, A.n, A.nnz);
+#ifdef __SPMV_OPT1_H__
+    spmv_opt1(row_ptr_arr, col_idx_arr, val_arr, x_arr, y_hw, A.m, A.n, A.nnz);
+#endif
 	//spmv_opt4(row_ptr_arr0, col_idx_arr0, val_arr0, y_hw0, P0.m, P0.n, P0.nnz
 	//	,row_ptr_arr1, col_idx_arr1, val_arr1, y_hw1, P1.m, P1.n, P1.nnz, x_arr);
-	//spmv_stream(row_ptr_strm, col_idx_strm, val_strm, x_arr, y_strm, A.m, A.n, A.nnz);
-	spmv_stream_lb(row_ptr_strm, col_idx_strm, val_strm, y_strm, P0.m, P0.n, P0.nnz, row_ptr_strm1, col_idx_strm1, val_strm1, y_strm1, P1.m, P1.n, P1.nnz, x_arr);
+#ifdef __SPMV_OPT3_H__
+    spmv_opt3(row_ptr_arr, col_idx_arr, val_arr, x_arr, y_hw, A.m, A.n, A.nnz);
+#endif
 
-	printf("End function\n");
+#ifdef _STREAM_
+
+#ifdef _LB_
+	spmv_stream_lb(row_ptr_strm, col_idx_strm, val_strm, y_strm, P0.m, P0.nnz, row_ptr_strm1, col_idx_strm1, val_strm1, y_strm1, P1.m,  P1.nnz, A.n, x_arr);
 	for (int i = P0.row_start; i <= P0.row_end; i++) {
 	        y_hw[i] = y_strm.read();
 	}
 	for (int i = P1.row_start; i <= P1.row_end; i++) {
 	        y_hw[i] = y_strm1.read();
 	}
-    //spmv_opt2(row_ptr_arr, col_idx_arr, val_arr, x_arr, y_hw, A.m, A.n, A.nnz);
-    //spmv_opt3_1(row_pad_arr, col_idx_pad_arr, val_pad_arr, x_arr, y_hw, A.m, A.n, nnz_upd);
 
-    //spmv_opt3(row_ptr_arr, col_idx_arr, val_arr, x_arr, y_hw, A.m, A.n, A.nnz);
+#else
+
+#ifdef __SPMV_OPT2S_H__
+	//
+	spmv_naive_stream_opt2_stream(row_ptr_strm, col_idx_strm, val_strm, x_arr, y_strm, A.m, A.n, A.nnz);
+#else
+	spmv_stream(row_ptr_strm, col_idx_strm, val_strm, x_arr, y_strm, A.m, A.n, A.nnz);
+#endif
+		printf("End function\n");
+	for (int i = 0; i < A.m; i++) {
+		y_hw[i] = y_strm.read();
+	}
+#endif
+#endif
+    //spmv_opt2(row_ptr_arr, col_idx_arr, val_arr, x_arr, y_hw, A.m, A.n, A.nnz);
+
     //spmv_opt4(row_ptr_arr, col_idx_arr, val_arr, x_arr, y_hw, A.m, A.n, A.nnz);
 
 	/*

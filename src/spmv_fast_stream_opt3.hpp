@@ -7,12 +7,11 @@
 #include <ap_int.h>
 
 #define DATA_TYPE float
-#define II 8
-#define P 2
+#define II 4
 
 const static int MAX_N = 256;
 const static int MAX_M = 256;
-const static int MAX_SZ = 4096;
+const static int MAX_SZ = 20000;
 
 #endif
 
@@ -21,11 +20,11 @@ const static int MAX_SZ = 4096;
 #define __SPMV_OPT3_H__
 
 
-void spmv_opt3(const int  row_ptr[MAX_M],
-        const int  col_idx[MAX_SZ],
-        const DATA_TYPE val[MAX_SZ],
-        const DATA_TYPE x[MAX_N],
-        DATA_TYPE y[MAX_M],
+void spmv_opt3(const int  *row_ptr,
+        const int  *col_idx,
+        const DATA_TYPE *val,
+        const DATA_TYPE *x,
+        DATA_TYPE *y,
         int M, int N, int nnz);
 
 #endif

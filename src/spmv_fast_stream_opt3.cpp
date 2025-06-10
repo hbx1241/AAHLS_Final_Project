@@ -2,14 +2,20 @@
 
 
 
-void spmv_kernel_opt3(
-		const int  row_ptr[MAX_M],
+void spmv_kernel_opt3(const int  row_ptr[MAX_M],
         const int  col_idx[MAX_SZ],
         const DATA_TYPE val[MAX_SZ],
         const DATA_TYPE x[MAX_N],
         DATA_TYPE y[MAX_M],
         int M, int N, int nnz) {
+
+#pragma HLS INTERFACE s_axilite port=row_ptr       bundle=control
+#pragma HLS INTERFACE s_axilite port=col_idx       bundle=control
+#pragma HLS INTERFACE s_axilite port=val       bundle=control
+#pragma HLS INTERFACE s_axilite port=y       bundle=control
 #pragma HLS INTERFACE s_axilite port=x       bundle=control
+#pragma HLS INTERFACE s_axilite port=M       bundle=control
+#pragma HLS INTERFACE s_axilite port=N      bundle=control
 #pragma HLS INTERFACE s_axilite port=nnz       bundle=control
 #pragma HLS INTERFACE s_axilite port=return  bundle=control
 #pragma HLS DATAFLOW
@@ -29,29 +35,22 @@ void spmv_kernel_opt3(
 	sum = 0;
 	rz_pad = 0;
 	rz= 0;
-	//
 
 		LOOP_ROW_SIZE: for (int i = 0, prv = 0; i < M; i++) {
 	#pragma HLS PIPELINE
 			int r, cur;
-
 			cur = row_ptr[i + 1];
 			r = cur - prv;
 			prv = cur;
 			int left = r % II;
 			int r_new, rr = r + II - left;
-			if (r == 0) {
-				r_new = II;
-			} else if (left){
-				r_new = rr;
-			} else r_new = r;
-
+			r_new = r == 0 ? II : (left) ? r + II - left : r;
 			nnz_new += r_new;
 			row_fifo.write(r);
 			row_pad_fifo.write(r_new);
 
 		}
-	//#pragma HLS DATAFLOW
+
 		LOOP_NNZ_FIFO: for (int i = 0; i < nnz; i++) {
 			#pragma HLS PIPELINE
 			col_fifo.write(col_idx[i]);
@@ -98,19 +97,17 @@ void spmv_kernel_opt3(
 
 }
 
-void spmv_opt3(const int  row_ptr[MAX_M],
-          const int  col_idx[MAX_SZ],
-          const DATA_TYPE val[MAX_SZ],
-          const DATA_TYPE x[MAX_N],
-          DATA_TYPE y[MAX_M],
+void spmv_opt3(const int  *row_ptr,
+          const int  *col_idx,
+          const DATA_TYPE *val,
+          const DATA_TYPE *x,
+          DATA_TYPE *y,
           int M, int N, int nnz)
 {
-	/*
-#pragma HLS INTERFACE m_axi port=row_ptr  offset=slave bundle=gmem0
-#pragma HLS INTERFACE m_axi port=col_idx offset=slave bundle=gmem1
-#pragma HLS INTERFACE m_axi port=val     offset=slave bundle=gmem2
-#pragma HLS INTERFACE m_axi port=x        offset=slave bundle=gmem3
-#pragma HLS INTERFACE m_axi port=y        offset=slave bundle=gmem4*/
+#pragma HSL INTERFACE mode=ap_fifo port=row_ptr
+#pragma HSL INTERFACE mode=ap_fifo port=col_idx
+#pragma HSL INTERFACE mode=ap_fifo port=val
+#pragma HSL INTERFACE mode=ap_fifo port=y
 #pragma HLS INTERFACE s_axilite port=row_ptr  bundle=control
 #pragma HLS INTERFACE s_axilite port=col_idx bundle=control
 #pragma HLS INTERFACE s_axilite port=val     bundle=control
@@ -121,9 +118,8 @@ void spmv_opt3(const int  row_ptr[MAX_M],
 #pragma HLS INTERFACE s_axilite port=return  bundle=control
 
 
-
-	DATA_TYPE x_local[MAX_N];
-#pragma HLS ARRAY_PARTITION variable=x cyclic factor=8 dim=1
+	 static DATA_TYPE x_local[MAX_N];
+#pragma HLS ARRAY_PARTITION variable=x_local cyclic factor=8 dim=1
 //
 	for (int i = 0; i < N; i++) {
 		x_local[i] = x[i];

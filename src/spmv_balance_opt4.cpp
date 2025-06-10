@@ -267,10 +267,11 @@ void spmv_stream(
 #pragma HLS INTERFACE axis port=row_ptr_strm
 #pragma HLS INTERFACE axis port=col_idx_strm
 #pragma HLS INTERFACE axis port=val_strm
-#pragma HLS INTERFACE axis port=x_strm
 #pragma HLS INTERFACE axis port=y_strm
     // Control ports
+#pragma HLS INTERFACE s_axilite port=x    bundle=CTRL
 #pragma HLS INTERFACE s_axilite port=M    bundle=CTRL
+#pragma HLS INTERFACE s_axilite port=N    bundle=CTRL
 #pragma HLS INTERFACE s_axilite port=NNZ  bundle=CTRL
 #pragma HLS INTERFACE s_axilite port=return bundle=CTRL
 
@@ -302,15 +303,14 @@ void spmv_stream_lb(
     hls::stream<DATA_TYPE> &val_strm,
     hls::stream<DATA_TYPE> &y_strm,
     int                      M,
-	int N,
     int                      NNZ,
 	hls::stream<int>       &row_ptr_strm1,
 	hls::stream<int>       &col_idx_strm1,
 	hls::stream<DATA_TYPE> &val_strm1,
 	hls::stream<DATA_TYPE> &y_strm1,
 	int                      M1,
-	int N1,
 	int                      NNZ1,
+	int N,
 	DATA_TYPE x[MAX_N])
 {
     // AXI4-Stream ports
@@ -323,8 +323,12 @@ void spmv_stream_lb(
 #pragma HLS INTERFACE axis port=val_strm1
 #pragma HLS INTERFACE axis port=y_strm1
     // Control ports
+#pragma HLS INTERFACE s_axilite port=x    bundle=CTRL
+#pragma HLS INTERFACE s_axilite port=N 	  bundle=CTRL
 #pragma HLS INTERFACE s_axilite port=M    bundle=CTRL
+#pragma HLS INTERFACE s_axilite port=M1    bundle=CTRL
 #pragma HLS INTERFACE s_axilite port=NNZ  bundle=CTRL
+#pragma HLS INTERFACE s_axilite port=NNZ1   bundle=CTRL
 #pragma HLS INTERFACE s_axilite port=return bundle=CTRL
 
     // Overlap load, compute, store

@@ -9,9 +9,11 @@
 #define DATA_TYPE float
 #define II 4
 #define P 2
+#define _STREAM_
+//#define _LB_
 
-const static int MAX_N = 512;
-const static int MAX_M = 512;
+const static int MAX_N = 256;
+const static int MAX_M = 256;
 const static int MAX_SZ = 20000;
 #endif
 
@@ -40,7 +42,7 @@ void spmv_stream(
     hls::stream<int>       &row_ptr_strm,
     hls::stream<int>       &col_idx_strm,
     hls::stream<DATA_TYPE> &val_strm,
-    hls::stream<DATA_TYPE> &x_strm,
+    DATA_TYPE x[MAX_SZ],
     hls::stream<DATA_TYPE> &y_strm,
     int                      M,
 	int N,
@@ -52,7 +54,6 @@ void spmv_stream_lb(
     hls::stream<DATA_TYPE> &val_strm,
     hls::stream<DATA_TYPE> &y_strm,
     int                      M,
-	int N,
     int                      NNZ,
 	hls::stream<int>       &row_ptr_strm1,
 	hls::stream<int>       &col_idx_strm1,
