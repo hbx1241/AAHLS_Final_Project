@@ -363,3 +363,98 @@ void spmv_stream_lb(
            M1,
            NNZ1);
 }
+
+void spmv_compute_vec(
+    hls::stream<int>       &row_ptr_strm,
+    hls::stream<ivec_t>       &col_fifo,
+    hls::stream<vvec_t> &val_fifo,
+    const DATA_TYPE         x[MAX_N],
+    hls::stream<DATA_TYPE> &y_strm,
+    int                      M,
+    int                      NNZ)
+{
+#pragma HLS DATAFLOW
+
+
+
+    DATA_TYPE buf[II], buf1[II], acc;
+    int padLen;
+
+    padLen  = 0;
+    acc = 0;
+    // Stage 3: block-wise multiply-accumulate
+    for (int blk = 0; blk < NNZ; blk += II) {
+    #pragma HLS PIPELINE
+    	if (padLen == 0) {
+    		padLen = row_ptr_strm.read();
+    		acc = 0;
+    	}
+
+    	DATA_TYPE acc_tmp = 0, acc_tmp1 = 0;
+        for (int j = 0; j < II; j+=2) {
+        #pragma HLS UNROLL
+             ivec_t c   = col_fifo.read();
+             vvec_t v  = val_fifo.read();
+			buf[j]  = v[0] * x[c[0]];
+			buf[j+1] = v[1] * x[c[1]];
+        }
+        // reduction
+        for (int j = 0; j < II; j++) {
+        #pragma HLS UNROLL
+            acc_tmp += buf[j];
+        }
+        acc += acc_tmp;
+        padLen -= II;
+        if (padLen == 0) {
+        	//printf("%f\n", acc);
+        	y_strm.write(acc);
+        	acc = 0;
+        }
+
+    }
+
+}
+
+void spmv_stream_vec(
+    hls::stream<int>       &row_ptr_strm,
+    hls::stream<ivec_t>       &col_idx_strm,
+    hls::stream<vvec_t> &val_strm,
+	DATA_TYPE 	x[MAX_N],
+	hls::stream<DATA_TYPE> &y_strm,
+    int                      M,
+	int N,
+    int                      NNZ)
+{
+    // AXI4-Stream ports
+#pragma HLS INTERFACE axis port=row_ptr_strm
+#pragma HLS INTERFACE axis port=col_idx_strm
+#pragma HLS INTERFACE axis port=val_strm
+#pragma HLS INTERFACE axis port=y_strm
+    // Control ports
+#pragma HLS INTERFACE s_axilite port=x    bundle=CTRL
+#pragma HLS INTERFACE s_axilite port=M    bundle=CTRL
+#pragma HLS INTERFACE s_axilite port=N    bundle=CTRL
+#pragma HLS INTERFACE s_axilite port=NNZ  bundle=CTRL
+#pragma HLS INTERFACE s_axilite port=return bundle=CTRL
+
+    // Overlap load, compute, store
+#pragma HLS DATAFLOW
+
+    // 1) Read input vector x into BRAM (size assumed MAX_N)
+    static DATA_TYPE x_local[MAX_N];
+#pragma HLS ARRAY_PARTITION variable=x_local cyclic factor=8 dim=1
+    for (int i = 0; i < N; ++i) {
+    #pragma HLS PIPELINE II=1
+        x_local[i] = x[i];
+    }
+
+    // 2) Compute SPMS via streaming kernel, passing M and NNZ
+    spmv_compute_vec(
+        row_ptr_strm,
+        col_idx_strm,
+        val_strm,
+        x_local,
+        y_strm,
+        M,
+        NNZ);
+}

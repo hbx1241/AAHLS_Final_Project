@@ -5,6 +5,7 @@
 #include "spmv_balance_opt4.hpp"
 //#include "spmv_fast_stream_opt3.hpp"
 
+#include <iostream>
 #include <cmath>
 #include <cassert>
 #include <fstream>
@@ -39,6 +40,13 @@ static DATA_TYPE    y_hw0        [MAX_M];
 static DATA_TYPE    y_hw1        [MAX_M];
 int nnz0, nnz1;
 int part0_row, part1_row;
+
+#ifdef _STREAM_VEC_
+    hls::stream<int> row_pad_vec_strm;
+    hls::stream<ivec_t> col_idx_vec_strm;
+    hls::stream<vvec_t> val_vec_strm;
+    hls::stream<DATA_TYPE> y_strm;
+#endif
 
 template<typename T>
 struct Csr {
@@ -162,10 +170,49 @@ Csr<T> read_csr_p(int pid, const std::string &dir) {
     return p;
 }
 
+#ifdef _STREAM_VEC_
+void spmv_pad_vec(Csr<float> &A, hls::stream<int> &row_pad_fifo, hls::stream<ivec_t> &col_vec_fifo, hls::stream<vvec_t> &val_vec_fifo, int &NNZ) {
+	 int ptr = 0;
+	 int prv = 0;
+	 int nnz = 0;
+	for (int i = 0; i < A.m; i++) {
+		int cur = row_ptr_arr[i + 1];
+		int row_length = cur - prv;
+
+		int row_pad = (row_length + II - 1) / II * II;
+		nnz += row_pad;
+		row_pad_fifo.write(row_pad);
+		ivec_t iv;
+		vvec_t vv;
+
+		for (int j = 0, k = 0, t = prv; j < row_pad; j++, t++) {
+			DATA_TYPE v;
+			int col;
+
+			if (t < cur) {
+				v = val_arr[t];
+				col = col_idx_arr[t];
+			} else {
+				v =  0;
+				col = 0;
+			}
+			iv[k] = col;
+			vv[k] = v;
+			if (k == 1) {
+				col_vec_fifo.write(iv);
+				val_vec_fifo.write(vv);
+				k = 0;
+			} else k++;
+		}
+		prv = cur;
+	}
+	NNZ = nnz;
+}
+#endif
 
 int main()
 {
-    std::string dir = "/home/ubuntu/HLS/SpMv/dat/dat_p2/";
+    std::string dir = "/home/ubuntu/HLS/SpMv/dat/";
 
     // ───────── load data from txt files ─────────
     Csr<float> A = read_csr(dir);
@@ -254,7 +301,14 @@ int main()
 #ifdef __SPMV_OPT3_H__
     spmv_opt3(row_ptr_arr, col_idx_arr, val_arr, x_arr, y_hw, A.m, A.n, A.nnz);
 #endif
-
+#ifdef _STREAM_VEC_
+    int nnz;
+    spmv_pad_vec(A, row_pad_vec_strm, col_idx_vec_strm, val_vec_strm, nnz);
+    spmv_stream_vec(row_pad_vec_strm, col_idx_vec_strm, val_vec_strm, x_arr, y_strm, A.m, A.n, nnz);
+    for (int i = 0; i < A.m; i++) {
+    		y_hw[i] = y_strm.read();
+	}
+#endif
 #ifdef _STREAM_
 
 #ifdef _LB_

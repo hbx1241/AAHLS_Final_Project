@@ -4,13 +4,17 @@
 #include <stdint.h>
 #include "hls_math.h"
 #include "hls_stream.h"
+#include "hls_vector.h"
 #include <ap_int.h>
 
 #define DATA_TYPE float
-#define II 4
+#define II 8
 #define P 2
-#define _STREAM_
+//#define _STREAM_
+#define _STREAM_VEC_
 //#define _LB_
+using ivec_t = hls::vector<int, 2>;
+using vvec_t = hls::vector<DATA_TYPE, 2>;
 
 const static int MAX_N = 256;
 const static int MAX_M = 256;
@@ -63,4 +67,15 @@ void spmv_stream_lb(
 	int N1,
 	int                      NNZ1,
 	DATA_TYPE x[MAX_N]);
+
+void spmv_stream_vec(
+    hls::stream<int>       &row_ptr_strm,
+    hls::stream<ivec_t>       &col_idx_strm,
+    hls::stream<vvec_t> &val_strm,
+	DATA_TYPE 	x[MAX_N],
+    hls::stream<DATA_TYPE> &y_strm,
+    int                      M,
+	int N,
+    int                      NNZ);
+
 #endif
